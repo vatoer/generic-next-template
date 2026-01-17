@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client"
@@ -13,169 +8,66 @@ datasource db {
   provider = "postgresql"
 }
 
-// Model for Users, Accounts, Sessions, and Verification Tokens
-model Permission {
-  id          String           @id @default(cuid())
-  name        String //@unique
-  resource    String // e.g., "post", "dashboard"
-  action      String // e.g., "create", "read", "update", "delete"
-  description String?
-  createdBy   String           @map("created_by")
-  createdAt   DateTime         @default(now()) @map("created_at")
-  updatedBy   String?          @map("updated_by")
-  updatedAt   DateTime?        @updatedAt @map("updated_at")
-  roles       RolePermission[]
-
-  @@unique([resource, action])
-  @@map("permissions")
-}
-
-model Role {
-  id          String           @id @default(cuid())
-  name        String           @unique
-  description String?
-  createdBy   String           @map("created_by")
-  createdAt   DateTime         @default(now()) @map("created_at")
-  updatedBy   String?          @map("updated_by")
-  updatedAt   DateTime?        @updatedAt @map("updated_at")
-  extendedBy  RoleExtension[]  @relation("RoleExtender") // Roles that extend this role
-  extends     RoleExtension[]  @relation("RoleExtendee") // Roles this role extends
-  users       UserRole[]
-  permissions RolePermission[]
-
-  @@map("roles")
-}
-
-model RoleExtension {
-  id             String @id @default(cuid())
-  baseRoleId     String @map("base_role_id") // The role being extended 
-  extendedRoleId String @map("extended_role_id") // The role that extends it
-  baseRole       Role   @relation("RoleExtendee", fields: [baseRoleId], references: [id], onDelete: Cascade)
-  extendedRole   Role   @relation("RoleExtender", fields: [extendedRoleId], references: [id], onDelete: Cascade)
-
-  @@map("role_extensions")
-}
-
-model RolePermission {
-  roleId       String     @map("role_id")
-  permissionId String     @map("permission_id")
-  role         Role       @relation(fields: [roleId], references: [id])
-  permission   Permission @relation(fields: [permissionId], references: [id])
-
-  @@id([roleId, permissionId])
-  @@map("role_permissions")
-}
-
-model UserRole {
-  userId String @map("user_id")
-  roleId String @map("role_id")
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
-
-  @@id([userId, roleId])
-  @@map("user_roles")
-}
-
 model User {
-  id             String          @id @default(cuid())
-  name           String
-  email          String          @unique
-  password       String?
-  emailVerified  DateTime?       @map("email_verified")
-  image          String?
-  status         StatusUser      @default(ACTIVE) @map("status")
-  sessions       Session[]
-  idCardNumber   String?         @unique @map("id_card_number")
-  idCardType     String?         @map("id_card_type")
-  nip            String?         @unique @map("nip")
-  organisasiId   String?         @map("organisasi_id")
-  organisasi     Organisasi?     @relation(fields: [organisasiId], references: [id])
-  createdBy      String          @default("init") @map("created_by")
-  createdAt      DateTime        @default(now()) @map("created_at")
-  updatedBy      String?         @map("updated_by")
-  updatedAt      DateTime?       @updatedAt @map("updated_at")
-  userRole       UserRole[]
-  userPreference UserPreference? // 1-to-1 relation with UserPreference
-  profile        Profile?
+  id            String    @id @default(cuid())
+  name          String
+  email         String
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
 
+  @@unique([email])
   @@map("users")
 }
 
-model Profile{
-  id              String   @id @default(uuid())
-  userId          String   @unique
-  user            User     @relation(fields: [userId], references: [id])
-  description     String?
-
-  @@map("profiles")
-}
-
-model UserPreference {
-  id        String    @id @map("user_id") // this will be the user id (foreign key)
-  tema      String?
-  language  String?
-  timezone  String?
-  detil     Json?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime? @updatedAt
-
-  // Relation to User
-  user User @relation(fields: [id], references: [id])
-
-  @@map("user_preferences")
-}
-
 model Session {
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([token])
+  @@index([userId])
   @@map("sessions")
 }
 
-model VerificationToken {
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@unique([accountId, providerId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Verification {
+  id         String   @id @default(cuid())
   identifier String
-  token      String   @unique
-  expires    DateTime
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@id([identifier, token])
-  @@map("verification_tokens")
-}
-
-enum StatusUser {
-  ACTIVE
-  INACTIVE
-  SUSPENDED
-  LOCKED
-}
-
-enum StatusAktif {
-  AKTIF
-  NON_AKTIF
-  DIBUBARKAN
-}
-
-model Organisasi {
-  id                String       @id @default(cuid())
-  nama              String
-  singkatan         String?
-  status            StatusAktif  @default(AKTIF) // Mengganti aktif dengan enum status
-  tingkat           Int? //@default(-1)
-  indukOrganisasiId String?      @map("induk_organisasi_id")
-  indukOrganisasi   Organisasi?  @relation("pohon_organisasi", fields: [indukOrganisasiId], references: [id])
-  createdBy         String       @map("created_by")
-  createdAt         DateTime     @default(now()) @map("created_at")
-  updatedBy         String?      @map("updated_by")
-  updatedAt         DateTime?    @map("updated_at")
-  subOrganisasi     Organisasi[] @relation("pohon_organisasi")
-  user              User[]
-
-  @@map("organisasi")
+  @@index([identifier])
+  @@map("verifications")
 }

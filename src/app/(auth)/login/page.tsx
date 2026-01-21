@@ -1,4 +1,4 @@
-import { AuthCard, LoginForm, SocialLogin } from '@/modules/iam/components';
+import { AuthCard } from '@/modules/iam/components';
 
 export default function LoginPage() {
   return (

@@ -1,6 +1,8 @@
 import 'dotenv/config';
 import { db } from '@/utils/db';
 import { hashPassword } from '@/utils/password';
+import { seedOrganisasi } from './seed-organisasi';
+import { seedProfiles, seedAdditionalUsersWithProfiles } from './seed-profiles';
 
 async function main() {
   const email = "admin@stargan.id"
@@ -35,8 +37,18 @@ async function main() {
     },
   })
 
-  
   console.log("✅ Admin user seeded")
+
+  // Seed organisasi
+  await seedOrganisasi();
+
+  // Seed profil
+  await seedProfiles();
+
+  // Seed user tambahan dengan profil
+  await seedAdditionalUsersWithProfiles();
+
+  console.log("\n✅ All seeding completed successfully!");
 }
 
 main()

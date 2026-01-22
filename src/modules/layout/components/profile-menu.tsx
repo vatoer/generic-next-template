@@ -13,6 +13,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import dynamic from "next/dynamic";
+
+// Dynamic import ProfileSwitcher to avoid hydration mismatch
+const ProfileSwitcher = dynamic(
+  () =>
+    import("@/modules/organisasi/components/profile-switcher").then(
+      (mod) => mod.ProfileSwitcher
+    ),
+  { ssr: false }
+);
 
 interface ProfileMenuProps {
   user: {
@@ -59,6 +69,15 @@ export const ProfileMenu = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
+        {/* Profile Switcher */}
+        <div className="px-2 py-1.5 mb-2">
+          <React.Suspense fallback={<div className="text-xs text-muted-foreground p-2">Loading profiles...</div>}>
+            <ProfileSwitcher />
+          </React.Suspense>
+        </div>
+
+        <DropdownMenuSeparator />
+
         {/* User Info */}
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
@@ -76,6 +95,13 @@ export const ProfileMenu = ({
           <Link href="/settings/profile" className="cursor-pointer">
             <User className="mr-2 h-4 w-4" />
             <span>Profile</span>
+          </Link>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem asChild>
+          <Link href="/settings/profiles" className="cursor-pointer">
+            <User className="mr-2 h-4 w-4" />
+            <span>Kelola Profil</span>
           </Link>
         </DropdownMenuItem>
 

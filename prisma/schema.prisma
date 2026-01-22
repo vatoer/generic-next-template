@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -9,16 +8,18 @@ datasource db {
 }
 
 model User {
-  id            String     @id @default(cuid())
+  id            String        @id @default(cuid())
   name          String
   email         String
-  emailVerified Boolean    @default(false)
+  emailVerified Boolean       @default(false)
   image         String?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
   sessions      Session[]
   accounts      Account[]
   userRoles     UserRole[]
+  keanggotaans  Keanggotaan[]
+  profils       Profil[]
 
   @@unique([email])
   @@map("users")
@@ -82,6 +83,7 @@ model Role {
   updatedAt   DateTime         @updatedAt
   permissions RolePermission[]
   userRoles   UserRole[]
+  profilRoles ProfilRole[]
 
   @@map("roles")
 }
@@ -127,4 +129,168 @@ model UserRole {
   @@index([userId])
   @@index([roleId])
   @@map("user_roles")
+}
+
+// --- ENUMS ---
+
+enum StatusOrganisasi {
+  AKTIF
+  NON_AKTIF
+  DIBUBARKAN
+}
+
+enum JenisOrganisasi {
+  STRUKTURAL // Unit formal
+  KELOMPOK_KERJA // Task force/ad-hoc
+}
+
+enum TipeKepemimpinan {
+  DEFINITIF // Pejabat definitif
+  PLT // Pelaksana tugas (berhalangan tetap)
+  PLH // Pelaksana harian (berhalangan sementara)
+}
+
+enum PeranKeanggotaan {
+  ANGGOTA
+  PEJABAT // Pejabat definitif (bisa juga jadi pimpinan)
+  PLT
+  PLH
+  ADMIN // Pengelola data organisasi
+}
+
+// --- MODELS ---
+
+model Organisasi {
+  id            String           @id @default(cuid())
+  nama          String
+  singkatan     String?
+  status        StatusOrganisasi @default(AKTIF)
+  jenis         JenisOrganisasi  @default(STRUKTURAL)
+  eselon        Int?
+  punyaAnggaran Boolean          @default(false) @map("punya_anggaran")
+
+  // Hierarki
+  indukOrganisasiId String?      @map("induk_organisasi_id")
+  indukOrganisasi   Organisasi?  @relation("HierarkiOrg", fields: [indukOrganisasiId], references: [id])
+  subOrganisasi     Organisasi[] @relation("HierarkiOrg")
+
+  // Relasi Bisnis
+  daftarAnggota  Keanggotaan[]
+  daftarPimpinan RiwayatPimpinan[]
+
+  // Metadata
+  createdAt DateTime  @default(now()) @map("created_at")
+  createdBy String    @map("created_by")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+  updatedBy String?   @map("updated_by")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([indukOrganisasiId])
+  @@map("organisasi")
+}
+
+model Keanggotaan {
+  id             String           @id @default(cuid())
+  organisasiId   String           @map("organisasi_id")
+  userId         String           @map("user_id")
+  peran          PeranKeanggotaan @default(ANGGOTA)
+  tanggalMulai   DateTime         @default(now()) @map("tanggal_mulai")
+  tanggalSelesai DateTime?        @map("tanggal_selesai")
+  aktif          Boolean          @default(true)
+  catatan        String?          @db.Text
+
+  // Relasi
+  organisasi     Organisasi        @relation(fields: [organisasiId], references: [id])
+  user           User              @relation(fields: [userId], references: [id])
+  riwayatJabatan RiwayatPimpinan[]
+
+  // Metadata
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+  profils   Profil[]
+
+  @@index([organisasiId])
+  @@index([userId])
+  @@index([organisasiId, peran])
+  @@map("keanggotaan_organisasi")
+}
+
+model RiwayatPimpinan {
+  id               String           @id @default(cuid())
+  organisasiId     String           @map("organisasi_id")
+  keanggotaanId    String           @map("keanggotaan_id")
+  tipeKepemimpinan TipeKepemimpinan @map("tipe_kepemimpinan")
+  tanggalMulai     DateTime         @default(now()) @map("tanggal_mulai")
+  tanggalSelesai   DateTime?        @map("tanggal_selesai")
+  aktif            Boolean          @default(true)
+  alasan           String?          @db.Text // Alasan penunjukan atau pergantian
+
+  // Self-relation untuk pelacakan suksesi
+  pimpinanDigantikanId String?           @map("pimpinan_digantikan_id")
+  pimpinanDigantikan   RiwayatPimpinan?  @relation("SuksesiPimpinan", fields: [pimpinanDigantikanId], references: [id])
+  penerus              RiwayatPimpinan[] @relation("SuksesiPimpinan")
+
+  // Relasi
+  organisasi  Organisasi  @relation(fields: [organisasiId], references: [id])
+  keanggotaan Keanggotaan @relation(fields: [keanggotaanId], references: [id])
+
+  // Metadata
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
+  @@index([organisasiId])
+  @@index([keanggotaanId])
+  @@index([organisasiId, tipeKepemimpinan])
+  @@map("riwayat_pimpinan_organisasi")
+}
+
+// --- MODEL PROFIL (THE SWITCHER ENTITY) ---
+
+enum TipeProfil {
+  PERSONAL // Profil pribadi (biasanya default)
+  ORGANISASI // Terkait dengan struktur organisasi
+  EKSTERNAL // Vendor, Konsultan, atau tamu
+}
+
+model Profil {
+  id        String     @id @default(cuid())
+  userId    String     @map("user_id")
+  nama      String // Contoh: "Personal", "Kabid AA", "Ketua Pokja"
+  avatar    String?
+  tipe      TipeProfil @default(PERSONAL)
+  isDefault Boolean    @default(false) @map("is_default")
+  aktif     Boolean    @default(true)
+
+  // Relasi
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  peranProfil ProfilRole[]
+
+  // Extension: Hanya terisi jika tipe = ORGANISASI
+  dataKeanggotaan Keanggotaan? @relation(fields: [keanggotaanId], references: [id])
+
+  // Metadata
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime? @updatedAt @map("updated_at")
+  createdBy     String    @map("created_by")
+  updatedBy     String?   @map("updated_by")
+  deletedAt     DateTime? @map("deleted_at")
+  deletedBy     String?   @map("deleted_by")
+  keanggotaanId String?
+
+  @@index([userId])
+  @@map("profil_pengguna")
+}
+
+// --- PERAN BERBASIS PROFIL ---
+
+model ProfilRole {
+  id       String @id @default(cuid())
+  profilId String @map("profil_id")
+  roleId   String @map("role_id")
+
+  profil Profil @relation(fields: [profilId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([profilId, roleId])
+  @@map("profil_roles")
 }

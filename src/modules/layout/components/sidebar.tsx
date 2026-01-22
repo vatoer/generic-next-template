@@ -2,9 +2,11 @@
 
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { SidebarMenuItem } from "./sidebar-menu-item";
 import type { RouteItem } from "../types/navigation";
 
@@ -59,39 +61,39 @@ export const Sidebar = ({
         {/* Menu items */}
         <ScrollArea className="flex-1">
           <div className="space-y-1 p-2">
-            {menus.map((menu) => (
-              <div key={menu.href}>
-                {internalCollapsed ? (
-                  <div
-                    title={menu.title}
-                    className="flex justify-center py-2"
-                  >
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-9 w-9"
-                      asChild
-                    >
-                      <a href={menu.href} onClick={onMenuItemClick}>
-                        <span
-                          dangerouslySetInnerHTML={{
-                            __html: `<i class="iconify" data-icon="${menu.iconName}"></i>`,
-                          }}
-                          className="h-4 w-4"
-                        />
-                      </a>
-                    </Button>
-                  </div>
-                ) : (
-                  <SidebarMenuItem
-                    item={menu}
-                    isActive={false}
-                    level={0}
-                    onItemClick={onMenuItemClick}
-                  />
-                )}
-              </div>
-            ))}
+            <TooltipProvider delayDuration={300}>
+              {menus.map((menu) => (
+                <div key={menu.href}>
+                  {internalCollapsed ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9 mx-auto"
+                          asChild
+                        >
+                          <a href={menu.href} onClick={onMenuItemClick}>
+                            <Icon icon={menu.iconName} className="h-4 w-4" />
+                          </a>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="ml-2">
+                        {menu.title}
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    <SidebarMenuItem
+                      item={menu}
+                      isActive={false}
+                      level={0}
+                      isCollapsed={internalCollapsed}
+                      onItemClick={onMenuItemClick}
+                    />
+                  )}
+                </div>
+              ))}
+            </TooltipProvider>
           </div>
         </ScrollArea>
       </div>

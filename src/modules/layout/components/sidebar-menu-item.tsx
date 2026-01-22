@@ -8,6 +8,7 @@ import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { RouteItem } from "../types/navigation";
 
@@ -15,6 +16,7 @@ interface SidebarMenuItemProps {
   item: RouteItem;
   isActive: boolean;
   level?: number;
+  isCollapsed?: boolean;
   onItemClick?: () => void;
 }
 
@@ -22,6 +24,7 @@ export const SidebarMenuItem = ({
   item,
   isActive,
   level = 0,
+  isCollapsed = false,
   onItemClick,
 }: SidebarMenuItemProps) => {
   const [isOpen, setIsOpen] = React.useState(isActive);
@@ -36,6 +39,55 @@ export const SidebarMenuItem = ({
 
   const hasSubs = item.subs && item.subs.length > 0;
 
+  // When collapsed and has subs, show icon with tooltip
+  if (isCollapsed && hasSubs) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 mx-auto"
+          >
+            <Icon icon={item.iconName} className="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="right" className="ml-2">
+          <div className="text-sm font-medium">{item.title}</div>
+          {item.subs && (
+            <div className="text-xs opacity-75 mt-1">
+              {item.subs.map((s) => s.title).join(", ")}
+            </div>
+          )}
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  // When collapsed, single items show icons with tooltip
+  if (isCollapsed && !hasSubs) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 mx-auto"
+            asChild
+          >
+            <Link href={item.href} onClick={onItemClick}>
+              <Icon icon={item.iconName} className="h-4 w-4" />
+            </Link>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="right" className="ml-2">
+          {item.title}
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  // Expanded view with submenu
   if (hasSubs) {
     return (
       <Collapsible open={isOpen} onOpenChange={setIsOpen} asChild>
@@ -64,12 +116,13 @@ export const SidebarMenuItem = ({
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-1">
-            {item.subs.map((sub) => (
+            {item.subs && item.subs.map((sub) => (
               <SidebarMenuItem
                 key={sub.href}
                 item={sub}
                 isActive={pathname === sub.href}
                 level={level + 1}
+                isCollapsed={isCollapsed}
                 onItemClick={onItemClick}
               />
             ))}
@@ -79,6 +132,7 @@ export const SidebarMenuItem = ({
     );
   }
 
+  // Expanded view without submenu
   return (
     <Link href={item.href} onClick={onItemClick}>
       <Button

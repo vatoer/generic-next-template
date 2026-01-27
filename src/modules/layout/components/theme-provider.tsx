@@ -5,7 +5,7 @@ import { ReactNode } from "react";
 
 interface ThemeProviderProps {
   children: ReactNode;
-  attribute?: string;
+  attribute?: "class" | "data-theme";
   defaultTheme?: string;
   enableSystem?: boolean;
   storageKey?: string;

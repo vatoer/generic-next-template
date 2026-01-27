@@ -1,8 +1,9 @@
 import { auth } from "@/utils/auth";
 import { getUserPermissions, checkUserHasPermission, checkUserHasRole } from "../services/user-role.service";
+import { headers } from "next/headers";
 
 export const getCurrentUserPermissions = async () => {
-  const session = await auth();
+  const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user?.id) {
     return [];
   }
@@ -11,7 +12,7 @@ export const getCurrentUserPermissions = async () => {
 };
 
 export const checkPermission = async (resource: string, action: string) => {
-  const session = await auth();
+  const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user?.id) {
     return false;
   }
@@ -20,7 +21,7 @@ export const checkPermission = async (resource: string, action: string) => {
 };
 
 export const checkRole = async (roleName: string) => {
-  const session = await auth();
+  const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user?.id) {
     return false;
   }

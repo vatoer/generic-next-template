@@ -129,7 +129,7 @@ export class RiwayatPimpinanService {
             },
           },
         },
-        replacements: {
+        penerus: {
           include: {
             keanggotaan: {
               include: {

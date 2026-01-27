@@ -277,6 +277,8 @@ model Profil {
   deletedBy     String?   @map("deleted_by")
   keanggotaanId String?
 
+  @@unique([userId, tipe])
+  @@unique([userId, tipe, keanggotaanId])
   @@index([userId])
   @@map("profil_pengguna")
 }

@@ -1,13 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { authClient } from "@/utils/auth-client";
+import { useRouter } from "next/navigation";
+import { Topbar } from "./topbar";
 import { Sidebar } from "./sidebar";
-import { Topbar, type TopbarMenuAction } from "./topbar";
 import { processMenus } from "../lib/menu-utils";
 import { navigationMenus } from "../config/menu";
 import type { RouteItem, UserPermissionContext, LayoutUser } from "../types/navigation";
-import type { Notification } from "./notification-popover";
+import { authClient } from "@/utils/auth-client";
 
 interface AuthenticatedLayoutProps {
   children: React.ReactNode;
@@ -15,10 +15,6 @@ interface AuthenticatedLayoutProps {
   permissionContext: UserPermissionContext;
   appName?: string;
   appLogo?: React.ReactNode;
-  notifications?: Notification[];
-  onNotificationDismiss?: (id: string) => void;
-  onNotificationViewAll?: () => void;
-  topbarMenuActions?: TopbarMenuAction[];
 }
 
 export const AuthenticatedLayout = ({
@@ -27,11 +23,8 @@ export const AuthenticatedLayout = ({
   permissionContext,
   appName = "Dashboard",
   appLogo,
-  notifications = [],
-  onNotificationDismiss,
-  onNotificationViewAll,
-  topbarMenuActions = [],
 }: AuthenticatedLayoutProps) => {
+  const router = useRouter();
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const [processedMenus, setProcessedMenus] = React.useState<RouteItem[]>([]);
 
@@ -41,7 +34,8 @@ export const AuthenticatedLayout = ({
   }, [permissionContext]);
 
   const handleLogout = async () => {
-    await authClient.signOut({ redirect: true, redirectTo: "/login" });
+    await authClient.signOut();
+    router.push("/login");
   };
 
   return (
@@ -51,9 +45,6 @@ export const AuthenticatedLayout = ({
         user={user}
         appName={appName}
         appLogo={appLogo}
-        notifications={notifications}
-        onNotificationDismiss={onNotificationDismiss}
-        onNotificationViewAll={onNotificationViewAll}
         onLogout={handleLogout}
         onSettings={() => {
           // Navigate to settings
@@ -63,23 +54,20 @@ export const AuthenticatedLayout = ({
           // Navigate to help
           window.location.href = "/help";
         }}
-        topbarActions={topbarMenuActions}
       />
 
-      {/* Main Content Area */}
+      {/* Main Layout */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
+        {/* Sidebar - Collapsible */}
         <Sidebar
           menus={processedMenus}
           isCollapsed={isCollapsed}
           onCollapsedChange={setIsCollapsed}
         />
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-auto">
-          <div className="p-6">
-            {children}
-          </div>
+        {/* Content Area */}
+        <main className="flex-1 overflow-auto bg-background">
+          {children}
         </main>
       </div>
     </div>

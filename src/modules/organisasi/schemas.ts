@@ -4,10 +4,10 @@ import { z } from "zod";
 export const createOrganisasiSchema = z.object({
   nama: z.string().min(1, "Nama organisasi wajib diisi").max(255),
   singkatan: z.string().max(50).optional(),
-  status: z.enum(["AKTIF", "NON_AKTIF", "DIBUBARKAN"]).default("AKTIF"),
-  jenis: z.enum(["STRUKTURAL", "KELOMPOK_KERJA"]).default("STRUKTURAL"),
+  status: z.enum(["AKTIF", "NON_AKTIF", "DIBUBARKAN"]).optional(),
+  jenis: z.enum(["STRUKTURAL", "KELOMPOK_KERJA"]).optional(),
   eselon: z.number().int().positive().optional(),
-  punyaAnggaran: z.boolean().default(false),
+  punyaAnggaran: z.boolean().optional(),
   indukOrganisasiId: z.string().optional(),
 });
 
@@ -19,6 +19,13 @@ export const createKeanggotaanSchema = z.object({
   userId: z.string().cuid("ID user tidak valid"),
   peran: z.enum(["ANGGOTA", "PEJABAT", "PLT", "PLH", "ADMIN"]).default("ANGGOTA"),
   tanggalMulai: z.date().default(() => new Date()),
+  catatan: z.string().optional(),
+});
+
+export const createKeanggotaanByEmailSchema = z.object({
+  organisasiId: z.string().cuid("ID organisasi tidak valid"),
+  email: z.string().email("Email tidak valid"),
+  peran: z.enum(["ANGGOTA", "PEJABAT", "PLT", "PLH", "ADMIN"]).default("ANGGOTA"),
   catatan: z.string().optional(),
 });
 
@@ -34,13 +41,16 @@ export const createRiwayatPimpinanSchema = z.object({
 export const createProfilSchema = z.object({
   userId: z.string().cuid("ID user tidak valid"),
   nama: z.string().min(1, "Nama profil wajib diisi").max(255),
+  deskripsi: z.string().max(1000).optional(),
   tipe: z.enum(["PERSONAL", "ORGANISASI", "EKSTERNAL"]).default("PERSONAL"),
   avatar: z.string().url().optional(),
   isDefault: z.boolean().default(false),
+  organisasiId: z.string().cuid().optional().nullable(),
 });
 
 export type CreateOrganisasiInput = z.infer<typeof createOrganisasiSchema>;
 export type UpdateOrganisasiInput = z.infer<typeof updateOrganisasiSchema>;
 export type CreateKeanggotaanInput = z.infer<typeof createKeanggotaanSchema>;
+export type CreateKeanggotaanByEmailInput = z.infer<typeof createKeanggotaanByEmailSchema>;
 export type CreateRiwayatPimpinanInput = z.infer<typeof createRiwayatPimpinanSchema>;
 export type CreateProfilInput = z.infer<typeof createProfilSchema>;

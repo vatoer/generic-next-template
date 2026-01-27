@@ -73,3 +73,5 @@ export const Topbar = ({
     </header>
   );
 };
+
+export type { TopbarMenuAction };

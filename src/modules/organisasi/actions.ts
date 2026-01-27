@@ -12,15 +12,17 @@ import {
   KeanggotaanService,
   RiwayatPimpinanService,
   ProfilService,
+  UserSearchService,
 } from "./services";
 import {
   createOrganisasiSchema,
   updateOrganisasiSchema,
   createKeanggotaanSchema,
+  createKeanggotaanByEmailSchema,
   createRiwayatPimpinanSchema,
   createProfilSchema,
 } from "./schemas";
-import type { ApiResponse } from "./types";
+import type { ApiResponse, PeranKeanggotaan } from "./types";
 
 /**
  * ===== ORGANISASI ACTIONS =====
@@ -216,6 +218,31 @@ export async function addMemberAction(
   }
 }
 
+export async function addMemberByEmailAction(
+  data: unknown
+): Promise<ApiResponse<any>> {
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session?.user?.id) {
+      return { success: false, message: "Tidak terautentikasi" };
+    }
+
+    const validated = createKeanggotaanByEmailSchema.parse(data);
+    const result = await KeanggotaanService.addMemberByEmail(validated, session.user.id);
+
+    return {
+      success: true,
+      message: "Anggota berhasil ditambahkan",
+      data: result,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || "Gagal menambahkan anggota",
+    };
+  }
+}
+
 export async function removeMemberAction(id: string): Promise<ApiResponse<null>> {
   try {
     const session = await auth.api.getSession({ headers: await headers() });
@@ -233,6 +260,60 @@ export async function removeMemberAction(id: string): Promise<ApiResponse<null>>
     return {
       success: false,
       message: error.message || "Gagal menghapus anggota",
+    };
+  }
+}
+
+export async function updateMemberRoleAction(
+  keanggotaanId: string,
+  peran: PeranKeanggotaan
+): Promise<ApiResponse<any>> {
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session?.user?.id) {
+      return { success: false, message: "Tidak terautentikasi" };
+    }
+
+    const result = await KeanggotaanService.updatePeran(keanggotaanId, peran);
+
+    return {
+      success: true,
+      message: "Peran anggota berhasil diperbarui",
+      data: result,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || "Gagal memperbarui peran anggota",
+    };
+  }
+}
+
+export async function searchUsersForAddingAction(
+  query: string,
+  organisasiId: string
+): Promise<ApiResponse<any>> {
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session?.user?.id) {
+      return { success: false, message: "Tidak terautentikasi" };
+    }
+
+    const result = await UserSearchService.searchUsersForOrganisasi(
+      query,
+      organisasiId,
+      15
+    );
+
+    return {
+      success: true,
+      message: "Pencarian user berhasil",
+      data: result,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || "Gagal mencari user",
     };
   }
 }

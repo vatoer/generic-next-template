@@ -14,12 +14,14 @@ import { Separator } from "@/components/ui/separator";
 import { Icon } from "@iconify/react";
 import { getActiveLeaderAction, getOrganizationMembersAction } from "../actions";
 import type { OrganisasiWithTree, PimpinanAktifDTO } from "../types";
+import { ManageMembersDialog } from "./manage-members-dialog";
 
 interface OrganizationDashboardProps {
   organisasi: OrganisasiWithTree;
   onEditClick?: () => void;
   onManageMembersClick?: () => void;
   onManageLeadershipClick?: () => void;
+  onRefresh?: () => void;
 }
 
 export function OrganizationDashboard({
@@ -27,10 +29,12 @@ export function OrganizationDashboard({
   onEditClick,
   onManageMembersClick,
   onManageLeadershipClick,
+  onRefresh,
 }: OrganizationDashboardProps) {
   const [pimpinan, setPimpinan] = useState<PimpinanAktifDTO | null>(null);
   const [members, setMembers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [showManageMembers, setShowManageMembers] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -169,7 +173,10 @@ export function OrganizationDashboard({
             <Button
               variant="outline"
               size="sm"
-              onClick={onManageMembersClick}
+              onClick={() => {
+                setShowManageMembers(true);
+                onManageMembersClick?.();
+              }}
             >
               Kelola
             </Button>
@@ -210,6 +217,13 @@ export function OrganizationDashboard({
           )}
         </CardContent>
       </Card>
+
+      <ManageMembersDialog
+        open={showManageMembers}
+        onOpenChange={setShowManageMembers}
+        organisasiId={organisasi.id}
+        organisasiNama={organisasi.nama}
+      />
     </div>
   );
 }

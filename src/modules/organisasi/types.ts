@@ -9,17 +9,17 @@ export type PeranKeanggotaan = "ANGGOTA" | "PEJABAT" | "PLT" | "PLH" | "ADMIN";
 export interface OrganisasiDTO {
   id: string;
   nama: string;
-  singkatan?: string;
+  singkatan: string | null;
   status: OrganisasiStatus;
   jenis: JenisOrganisasi;
-  eselon?: number;
+  eselon: number | null;
   punyaAnggaran: boolean;
-  indukOrganisasiId?: string;
+  indukOrganisasiId: string | null;
   createdAt: Date;
   createdBy: string;
-  updatedAt?: Date;
-  updatedBy?: string;
-  deletedAt?: Date;
+  updatedAt: Date | null;
+  updatedBy: string | null;
+  deletedAt: Date | null;
 }
 
 export interface OrganisasiWithTree extends OrganisasiDTO {
@@ -34,9 +34,9 @@ export interface KeanggotaanDTO {
   userId: string;
   peran: PeranKeanggotaan;
   tanggalMulai: Date;
-  tanggalSelesai?: Date;
+  tanggalSelesai: Date | null;
   aktif: boolean;
-  catatan?: string;
+  catatan: string | null;
 }
 
 export interface RiwayatPimpinanDTO {
@@ -45,10 +45,10 @@ export interface RiwayatPimpinanDTO {
   keanggotaanId: string;
   tipeKepemimpinan: TipeKepemimpinan;
   tanggalMulai: Date;
-  tanggalSelesai?: Date;
+  tanggalSelesai: Date | null;
   aktif: boolean;
-  alasan?: string;
-  pimpinanDigantikanId?: string;
+  alasan: string | null;
+  pimpinanDigantikanId: string | null;
 }
 
 export interface PimpinanAktifDTO {
@@ -63,11 +63,23 @@ export interface ProfilDTO {
   id: string;
   userId: string;
   nama: string;
-  avatar?: string;
+  avatar: string | null;
   tipe: "PERSONAL" | "ORGANISASI" | "EKSTERNAL";
   isDefault: boolean;
   aktif: boolean;
-  keanggotaanId?: string;
+  createdAt: Date;
+  updatedAt: Date | null;
+  createdBy: string;
+  updatedBy: string | null;
+  deletedAt: Date | null;
+  deletedBy: string | null;
+  keanggotaanId: string | null;
+  organisasiId?: string;
+  organisasi?: {
+    id: string;
+    nama: string;
+  };
+  deskripsi?: string;
 }
 
 // Response Types

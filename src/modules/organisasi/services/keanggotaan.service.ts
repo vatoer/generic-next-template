@@ -5,7 +5,7 @@
 
 import { db } from "@/utils/db";
 import { KeanggotaanDTO, PeranKeanggotaan, ApiResponse } from "../types";
-import { CreateKeanggotaanInput } from "../schemas";
+import { CreateKeanggotaanInput, CreateKeanggotaanByEmailInput } from "../schemas";
 
 export class KeanggotaanService {
   /**
@@ -56,6 +56,30 @@ export class KeanggotaanService {
         aktif: true,
       },
     });
+  }
+
+  /**
+   * Tambah anggota berdasarkan email
+   */
+  static async addMemberByEmail(
+    data: CreateKeanggotaanByEmailInput,
+    createdBy: string
+  ): Promise<KeanggotaanDTO> {
+    const user = await db.user.findUnique({ where: { email: data.email } });
+    if (!user) {
+      throw new Error("User dengan email tersebut tidak ditemukan");
+    }
+
+    return this.addMember(
+      {
+        organisasiId: data.organisasiId,
+        userId: user.id,
+        peran: data.peran,
+        catatan: data.catatan,
+        tanggalMulai: new Date(),
+      },
+      createdBy
+    );
   }
 
   /**
@@ -153,6 +177,56 @@ export class KeanggotaanService {
   static async getMemberCount(organisasiId: string): Promise<number> {
     return db.keanggotaan.count({
       where: { organisasiId, aktif: true },
+    });
+  }
+}
+
+/**
+ * User Search Service
+ * Mencari user untuk keperluan organisasi
+ */
+export class UserSearchService {
+  /**
+   * Cari user berdasarkan nama atau email
+   * Exclude user yang sudah menjadi anggota organisasi tertentu
+   */
+  static async searchUsersForOrganisasi(
+    query: string,
+    organisasiId?: string,
+    limit: number = 10
+  ) {
+    const searchLower = query.toLowerCase();
+
+    // Jika organisasiId diberikan, exclude user yang sudah member aktif
+    let excludeUserIds: string[] = [];
+    if (organisasiId) {
+      const existingMembers = await db.keanggotaan.findMany({
+        where: { organisasiId, aktif: true },
+        select: { userId: true },
+      });
+      excludeUserIds = existingMembers.map((m) => m.userId);
+    }
+
+    return db.user.findMany({
+      where: {
+        AND: [
+          {
+            OR: [
+              { name: { contains: searchLower, mode: "insensitive" } },
+              { email: { contains: searchLower, mode: "insensitive" } },
+            ],
+          },
+          { id: { notIn: excludeUserIds } },
+        ],
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        image: true,
+      },
+      take: limit,
+      orderBy: [{ name: "asc" }, { email: "asc" }],
     });
   }
 }

@@ -1,0 +1,25 @@
+sequenceDiagram
+    participant User as 👤 User/Client
+    participant Pres as 🟢 Presentation (Action/API)
+    participant DTO as 🟡 DTO (Schema)
+    participant Service as 🔵 Service (Logic)
+    participant Prisma as 🔴 Prisma Client (ORM)
+    participant DB as 🗄️ Database
+
+    Note over User, DB: 1. THE REQUEST PHASE
+    User->>Pres: Sends Form Data (e.g., Email/Pass)
+    Pres->>DTO: Validate Input (Zod Parse)
+    DTO-->>Pres: Returns Validated Data Object
+    Pres->>Service: Calls createUser(validData)
+    
+    Note over Service, DB: 2. LOGIC & DATA PHASE
+    Service->>Service: Check Business Rules (e.g., "Is allowed?")
+    Service->>Prisma: prisma.user.create(...)
+    Prisma->>DB: SQL Query (Executed by Engine)
+    DB-->>Prisma: Return Raw Data
+    Prisma-->>Service: Return Typed Object (Prisma Model)
+    
+    Note over Service, Pres: 3. THE RESPONSE PHASE
+    Service->>Service: (Optional) Filter Data (e.g., remove password)
+    Service-->>Pres: Return Clean Object
+    Pres-->>User: Return JSON / UI Update

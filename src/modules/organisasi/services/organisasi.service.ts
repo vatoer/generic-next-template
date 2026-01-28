@@ -3,7 +3,7 @@
  * Menangani CRUD dan operasi hierarki organisasi
  */
 
-import { db } from "@/utils/db";
+import { db } from "@/shared/db";
 import {
   OrganisasiDTO,
   OrganisasiWithTree,

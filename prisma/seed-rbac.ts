@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { db } from '@/utils/db';
+import { db } from '@/shared/db';
 
 async function main() {
   console.log("🌱 Seeding RBAC data...");

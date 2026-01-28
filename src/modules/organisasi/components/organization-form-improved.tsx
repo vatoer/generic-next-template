@@ -42,7 +42,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Check, ChevronsUpDown, Building2, AlertCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { createOrganisasiSchema, type CreateOrganisasiInput } from "../schemas";
 import { createOrganisasiAction, getParentOrganisasiListAction } from "../actions";
 import type { OrganisasiDTO } from "../types";

@@ -7,10 +7,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { SocialLogin } from "./social-login";
 import { LoginForm } from "./login-form";
-import { authClient } from "@/utils/auth-client";
+import { authClient } from "@/shared/auth/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
 
 interface AuthCardProps {

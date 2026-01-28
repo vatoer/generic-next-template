@@ -5,7 +5,7 @@
  * Digunakan dari client components dengan autentikasi & validasi
  */
 
-import { auth } from "@/utils/auth";
+import { auth } from "@/shared/auth";
 import { headers } from "next/headers";
 import {
   OrganisasiService,

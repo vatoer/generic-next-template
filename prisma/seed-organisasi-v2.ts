@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { db } from '@/utils/db';
+import { db } from '@/shared/db';
 import { faker } from '@faker-js/faker';
 
 /**

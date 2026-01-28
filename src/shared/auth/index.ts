@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { db } from "@/utils/db";
-import { hashPassword, verifyPassword } from "./password";
+import { db } from "@/shared/db";
+import { hashPassword, verifyPassword } from "@/shared/utils/password";
 
 export const auth = betterAuth({
   emailAndPassword: {

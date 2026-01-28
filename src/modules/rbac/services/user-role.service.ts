@@ -1,4 +1,4 @@
-import { db } from "@/utils/db";
+import { db } from "@/shared/db";
 import type {
   AssignRoleToUserInput,
   RemoveRoleFromUserInput,

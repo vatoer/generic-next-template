@@ -3,7 +3,7 @@
  * Menangani profil pengguna (PERSONAL, ORGANISASI, EKSTERNAL)
  */
 
-import { db } from "@/utils/db";
+import { db } from "@/shared/db";
 import { ProfilDTO } from "../types";
 import { CreateProfilInput } from "../schemas";
 

@@ -1,4 +1,4 @@
-import { auth } from "@/utils/auth";
+import { auth } from "@/shared/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

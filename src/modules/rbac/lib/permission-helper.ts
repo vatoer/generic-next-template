@@ -1,4 +1,4 @@
-import { auth } from "@/utils/auth";
+import { auth } from "@/shared/auth";
 import { getUserPermissions, checkUserHasPermission, checkUserHasRole } from "../services/user-role.service";
 import { headers } from "next/headers";
 

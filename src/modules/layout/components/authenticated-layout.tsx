@@ -7,7 +7,7 @@ import { Sidebar } from "./sidebar";
 import { processMenus } from "../lib/menu-utils";
 import { navigationMenus } from "../config/menu";
 import type { RouteItem, UserPermissionContext, LayoutUser } from "../types/navigation";
-import { authClient } from "@/utils/auth-client";
+import { authClient } from "@/shared/auth/auth-client";
 
 interface AuthenticatedLayoutProps {
   children: React.ReactNode;

@@ -52,7 +52,7 @@ import {
 } from "../actions";
 import type { PeranKeanggotaan } from "../types";
 import { UserPlus, Trash2, Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 
 interface ManageMembersDialogProps {
   open: boolean;

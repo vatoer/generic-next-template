@@ -1,6 +1,6 @@
 import 'dotenv/config';
-import { db } from '@/utils/db';
-import { hashPassword } from '@/utils/password';
+import { db } from '@/shared/db';
+import { hashPassword } from '@/shared/utils/password';
 import { seedOrganisasiV2 } from './seed-organisasi-v2';
 import { seedProfilesV2 } from './seed-profiles-v2';
 

@@ -1,4 +1,4 @@
-import { auth } from "@/utils/auth";
+import { auth } from "@/shared/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { AuthLayoutProvider } from "@/modules/layout/components";

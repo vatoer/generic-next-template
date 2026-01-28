@@ -3,7 +3,7 @@
  * Menangani suksesi kepemimpinan dengan Prisma Transaction
  */
 
-import { db } from "@/utils/db";
+import { db } from "@/shared/db";
 import { RiwayatPimpinanDTO, TipeKepemimpinan, PimpinanAktifDTO } from "../types";
 import { CreateRiwayatPimpinanInput } from "../schemas";
 

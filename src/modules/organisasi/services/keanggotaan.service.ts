@@ -3,7 +3,7 @@
  * Menangani manajemen anggota organisasi
  */
 
-import { db } from "@/utils/db";
+import { db } from "@/shared/db";
 import { KeanggotaanDTO, PeranKeanggotaan, ApiResponse } from "../types";
 import { CreateKeanggotaanInput, CreateKeanggotaanByEmailInput } from "../schemas";
 

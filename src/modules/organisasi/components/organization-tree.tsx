@@ -139,7 +139,7 @@ function TreeNode({
       {/* Children */}
       {hasChildren && isExpanded && (
         <div>
-          {org.subOrganisasi.map((child) => (
+          {org.subOrganisasi.map((child: OrganisasiWithTree) => (
             <TreeNode
               key={child.id}
               org={child}

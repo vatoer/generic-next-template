@@ -7,7 +7,7 @@ import { db } from "@/shared/db";
 import { RiwayatPimpinanDTO, TipeKepemimpinan, PimpinanAktifDTO } from "../types";
 import { CreateRiwayatPimpinanInput } from "../schemas";
 
-export class RiwayatPimpinanService {
+export const RiwayatPimpinanService = {
   /**
    * Penugasan pimpinan baru (dengan suksesi otomatis)
    * Flow:
@@ -15,10 +15,10 @@ export class RiwayatPimpinanService {
    * 2. Update pimpinan lama: aktif=false, tanggalSelesai=now
    * 3. Buat pimpinan baru dengan referensi pimpinanDigantikanId
    */
-  static async assignLeader(
+  assignLeader: async (
     data: CreateRiwayatPimpinanInput,
     assignedBy: string
-  ): Promise<RiwayatPimpinanDTO> {
+  ): Promise<RiwayatPimpinanDTO> => {
     return db.$transaction(async (tx) => {
       // Validasi: keanggotaan exists
       const keanggotaan = await tx.keanggotaan.findUnique({
@@ -72,12 +72,12 @@ export class RiwayatPimpinanService {
 
       return pimpinanBaru;
     });
-  }
+  },
 
   /**
    * Hentikan pimpinan saat ini (end tenure)
    */
-  static async endLeadership(id: string): Promise<void> {
+  endLeadership: async (id: string): Promise<void> => {
     await db.riwayatPimpinan.update({
       where: { id },
       data: {
@@ -85,12 +85,12 @@ export class RiwayatPimpinanService {
         tanggalSelesai: new Date(),
       },
     });
-  }
+  },
 
   /**
    * Ambil pimpinan aktif saat ini untuk organisasi
    */
-  static async getActiveLeader(organisasiId: string): Promise<PimpinanAktifDTO | null> {
+  getActiveLeader: async (organisasiId: string): Promise<PimpinanAktifDTO | null> => {
     const riwayat = await db.riwayatPimpinan.findFirst({
       where: { organisasiId, aktif: true },
       include: {
@@ -113,12 +113,12 @@ export class RiwayatPimpinanService {
       tipeKepemimpinan: riwayat.tipeKepemimpinan,
       tanggalMulai: riwayat.tanggalMulai,
     };
-  }
+  },
 
   /**
    * Ambil semua pimpinan (aktif dan non-aktif) untuk organisasi
    */
-  static async getLeadershipHistory(organisasiId: string) {
+  getLeadershipHistory: async (organisasiId: string) => {
     return db.riwayatPimpinan.findMany({
       where: { organisasiId },
       include: {
@@ -143,12 +143,12 @@ export class RiwayatPimpinanService {
       },
       orderBy: { tanggalMulai: "desc" },
     });
-  }
+  },
 
   /**
    * Ambil detail riwayat pimpinan
    */
-  static async getById(id: string) {
+  getById: async (id: string) => {
     return db.riwayatPimpinan.findUnique({
       where: { id },
       include: {
@@ -173,15 +173,15 @@ export class RiwayatPimpinanService {
         },
       },
     });
-  }
+  },
 
   /**
    * Ambil pimpinan berdasarkan tipe (DEFINITIF/PLT/PLH) yang aktif
    */
-  static async getActiveLeadersByType(
+  getActiveLeadersByType: async (
     organisasiId: string,
     tipe: TipeKepemimpinan
-  ) {
+  ) => {
     return db.riwayatPimpinan.findMany({
       where: {
         organisasiId,
@@ -198,15 +198,15 @@ export class RiwayatPimpinanService {
         },
       },
     });
-  }
+  },
 
   /**
    * Validasi: leadership exists dan aktif
    */
-  static async isValidLeadership(id: string): Promise<boolean> {
+  isValidLeadership: async (id: string): Promise<boolean> => {
     const count = await db.riwayatPimpinan.count({
       where: { id, aktif: true },
     });
     return count > 0;
-  }
-}
+  },
+};

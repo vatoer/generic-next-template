@@ -7,14 +7,14 @@ import { db } from "@/shared/db";
 import { ProfilDTO } from "../types";
 import { CreateProfilInput } from "../schemas";
 
-export class ProfilService {
+export const ProfilService = {
   /**
    * Buat profil baru untuk user
    */
-  static async createProfile(
+  createProfile: async (
     data: CreateProfilInput,
     createdBy: string
-  ): Promise<ProfilDTO> {
+  ): Promise<ProfilDTO> => {
     // Jika isDefault true, set profil lain sebagai non-default
     if (data.isDefault) {
       await db.profil.updateMany({
@@ -34,16 +34,16 @@ export class ProfilService {
         createdBy,
       },
     });
-  }
+  },
 
   /**
    * Update profil
    */
-  static async updateProfile(
+  updateProfile: async (
     id: string,
     data: Partial<CreateProfilInput>,
     updatedBy: string
-  ): Promise<ProfilDTO> {
+  ): Promise<ProfilDTO> => {
     // Jika isDefault diubah ke true, set yang lain ke false
     if (data.isDefault === true) {
       const profil = await db.profil.findUnique({ where: { id } });
@@ -63,12 +63,12 @@ export class ProfilService {
         updatedAt: new Date(),
       },
     });
-  }
+  },
 
   /**
    * Hapus profil (soft delete)
    */
-  static async deleteProfile(id: string, deletedBy: string): Promise<void> {
+  deleteProfile: async (id: string, deletedBy: string): Promise<void> => {
     await db.profil.update({
       where: { id },
       data: {
@@ -77,12 +77,12 @@ export class ProfilService {
         deletedBy,
       },
     });
-  }
+  },
 
   /**
    * Ambil semua profil user
    */
-  static async getUserProfiles(userId: string) {
+  getUserProfiles: async (userId: string) => {
     return db.profil.findMany({
       where: { userId, aktif: true, deletedAt: null },
       include: {
@@ -94,21 +94,21 @@ export class ProfilService {
       },
       orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
     });
-  }
+  },
 
   /**
    * Ambil profil default user
    */
-  static async getDefaultProfile(userId: string): Promise<ProfilDTO | null> {
+  getDefaultProfile: async (userId: string): Promise<ProfilDTO | null> => {
     return db.profil.findFirst({
       where: { userId, isDefault: true, aktif: true, deletedAt: null },
     });
-  }
+  },
 
   /**
    * Ambil profil by ID
    */
-  static async getById(id: string) {
+  getById: async (id: string) => {
     return db.profil.findUnique({
       where: { id },
       include: {
@@ -135,12 +135,12 @@ export class ProfilService {
         },
       },
     });
-  }
+  },
 
   /**
    * Set profil sebagai aktif (switch)
    */
-  static async switchProfile(userId: string, profilId: string): Promise<ProfilDTO> {
+  switchProfile: async (userId: string, profilId: string): Promise<ProfilDTO> => {
     // Validasi profil milik user ini
     const profil = await db.profil.findUnique({
       where: { id: profilId },
@@ -164,12 +164,12 @@ export class ProfilService {
       where: { id: profilId },
       data: { isDefault: true },
     });
-  }
+  },
 
   /**
    * Berikan role ke profil
    */
-  static async assignRoleToProfile(profilId: string, roleId: string) {
+  assignRoleToProfile: async (profilId: string, roleId: string) => {
     return db.profilRole.upsert({
       where: {
         profilId_roleId: { profilId, roleId },
@@ -177,23 +177,23 @@ export class ProfilService {
       create: { profilId, roleId },
       update: {},
     });
-  }
+  },
 
   /**
    * Hapus role dari profil
    */
-  static async removeRoleFromProfile(profilId: string, roleId: string): Promise<void> {
+  removeRoleFromProfile: async (profilId: string, roleId: string): Promise<void> => {
     await db.profilRole.delete({
       where: {
         profilId_roleId: { profilId, roleId },
       },
     });
-  }
+  },
 
   /**
    * Ambil izin (permissions) dari profil
    */
-  static async getProfilePermissions(profilId: string): Promise<string[]> {
+  getProfilePermissions: async (profilId: string): Promise<string[]> => {
     const profilRoles = await db.profilRole.findMany({
       where: { profilId },
       include: {
@@ -217,5 +217,5 @@ export class ProfilService {
     });
 
     return Array.from(permissions);
-  }
-}
+  },
+};

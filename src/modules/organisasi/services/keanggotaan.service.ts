@@ -7,14 +7,14 @@ import { db } from "@/shared/db";
 import { KeanggotaanDTO, PeranKeanggotaan, ApiResponse } from "../types";
 import { CreateKeanggotaanInput, CreateKeanggotaanByEmailInput } from "../schemas";
 
-export class KeanggotaanService {
+export const KeanggotaanService = {
   /**
    * Tambah anggota ke organisasi
    */
-  static async addMember(
+  addMember: async (
     data: CreateKeanggotaanInput,
     createdBy: string
-  ): Promise<KeanggotaanDTO> {
+  ): Promise<KeanggotaanDTO> => {
     // Validasi: user harus exist
     const user = await db.user.findUnique({
       where: { id: data.userId },
@@ -56,21 +56,21 @@ export class KeanggotaanService {
         aktif: true,
       },
     });
-  }
+  },
 
   /**
    * Tambah anggota berdasarkan email
    */
-  static async addMemberByEmail(
+  addMemberByEmail: async (
     data: CreateKeanggotaanByEmailInput,
     createdBy: string
-  ): Promise<KeanggotaanDTO> {
+  ): Promise<KeanggotaanDTO> => {
     const user = await db.user.findUnique({ where: { email: data.email } });
     if (!user) {
       throw new Error("User dengan email tersebut tidak ditemukan");
     }
 
-    return this.addMember(
+    return KeanggotaanService.addMember(
       {
         organisasiId: data.organisasiId,
         userId: user.id,
@@ -80,25 +80,25 @@ export class KeanggotaanService {
       },
       createdBy
     );
-  }
+  },
 
   /**
    * Update peran anggota
    */
-  static async updatePeran(
+  updatePeran: async (
     keanggotaanId: string,
     peran: PeranKeanggotaan
-  ): Promise<KeanggotaanDTO> {
+  ): Promise<KeanggotaanDTO> => {
     return db.keanggotaan.update({
       where: { id: keanggotaanId },
       data: { peran },
     });
-  }
+  },
 
   /**
    * Hapus anggota dari organisasi
    */
-  static async removeMember(keanggotaanId: string): Promise<void> {
+  removeMember: async (keanggotaanId: string): Promise<void> => {
     await db.keanggotaan.update({
       where: { id: keanggotaanId },
       data: {
@@ -106,12 +106,12 @@ export class KeanggotaanService {
         tanggalSelesai: new Date(),
       },
     });
-  }
+  },
 
   /**
    * Ambil semua anggota organisasi
    */
-  static async getOrganizationMembers(organisasiId: string) {
+  getOrganizationMembers: async (organisasiId: string) => {
     return db.keanggotaan.findMany({
       where: { organisasiId, aktif: true },
       include: {
@@ -126,12 +126,12 @@ export class KeanggotaanService {
       },
       orderBy: { tanggalMulai: "desc" },
     });
-  }
+  },
 
   /**
    * Ambil organisasi di mana user adalah anggota
    */
-  static async getUserOrganizations(userId: string) {
+  getUserOrganizations: async (userId: string) => {
     return db.keanggotaan.findMany({
       where: { userId, aktif: true },
       include: {
@@ -139,12 +139,12 @@ export class KeanggotaanService {
       },
       orderBy: { tanggalMulai: "desc" },
     });
-  }
+  },
 
   /**
    * Ambil detail keanggotaan
    */
-  static async getById(id: string) {
+  getById: async (id: string) => {
     return db.keanggotaan.findUnique({
       where: { id },
       include: {
@@ -159,42 +159,42 @@ export class KeanggotaanService {
         organisasi: true,
       },
     });
-  }
+  },
 
   /**
    * Validasi: keanggotaan exists dan aktif
    */
-  static async isValidMembership(id: string): Promise<boolean> {
+  isValidMembership: async (id: string): Promise<boolean> => {
     const count = await db.keanggotaan.count({
       where: { id, aktif: true },
     });
     return count > 0;
-  }
+  },
 
   /**
    * Hitung jumlah anggota dalam organisasi
    */
-  static async getMemberCount(organisasiId: string): Promise<number> {
+  getMemberCount: async (organisasiId: string): Promise<number> => {
     return db.keanggotaan.count({
       where: { organisasiId, aktif: true },
     });
-  }
-}
+  },
+};
 
 /**
  * User Search Service
  * Mencari user untuk keperluan organisasi
  */
-export class UserSearchService {
+export const UserSearchService = {
   /**
    * Cari user berdasarkan nama atau email
    * Exclude user yang sudah menjadi anggota organisasi tertentu
    */
-  static async searchUsersForOrganisasi(
+  searchUsersForOrganisasi: async (
     query: string,
     organisasiId?: string,
     limit: number = 10
-  ) {
+  ) => {
     const searchLower = query.toLowerCase();
 
     // Jika organisasiId diberikan, exclude user yang sudah member aktif
@@ -228,5 +228,5 @@ export class UserSearchService {
       take: limit,
       orderBy: [{ name: "asc" }, { email: "asc" }],
     });
-  }
-}
+  },
+};

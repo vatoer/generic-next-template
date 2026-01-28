@@ -7,35 +7,34 @@ import { db } from "@/shared/db";
 import {
   OrganisasiDTO,
   OrganisasiWithTree,
-  TreeNode,
-  ApiResponse,
 } from "../types";
 import { CreateOrganisasiInput, UpdateOrganisasiInput } from "../schemas";
 
-export class OrganisasiService {
+
+export const OrganisasiService = {
   /**
    * Buat organisasi baru
    */
-  static async create(
+  create: async (
     data: CreateOrganisasiInput,
     createdBy: string
-  ): Promise<OrganisasiDTO> {
+  ): Promise<OrganisasiDTO> => {
     return db.organisasi.create({
       data: {
         ...data,
         createdBy,
       },
     });
-  }
+  },
 
   /**
    * Update organisasi
    */
-  static async update(
+  update: async (
     id: string,
     data: UpdateOrganisasiInput,
     updatedBy: string
-  ): Promise<OrganisasiDTO> {
+  ): Promise<OrganisasiDTO> => {
     return db.organisasi.update({
       where: { id },
       data: {
@@ -44,12 +43,12 @@ export class OrganisasiService {
         updatedAt: new Date(),
       },
     });
-  }
+  },
 
   /**
    * Hapus organisasi (soft delete)
    */
-  static async delete(id: string, deletedBy: string): Promise<void> {
+  delete: async (id: string, deletedBy: string): Promise<void> => {
     await db.organisasi.update({
       where: { id },
       data: {
@@ -57,47 +56,46 @@ export class OrganisasiService {
         updatedBy: deletedBy,
       },
     });
-  }
+  },
 
   /**
    * Ambil organisasi by ID
    */
-  static async getById(id: string): Promise<OrganisasiDTO | null> {
+  getById: async (id: string): Promise<OrganisasiDTO | null> => {
     return db.organisasi.findUnique({
       where: { id },
     });
-  }
+  },
 
   /**
    * Ambil semua organisasi (non-deleted)
    */
-  static async getAll(
+  getAll: async (
     jenis?: "STRUKTURAL" | "KELOMPOK_KERJA"
-  ): Promise<OrganisasiDTO[]> {
+  ): Promise<OrganisasiDTO[]> => {
     const where = jenis ? { jenis, deletedAt: null } : { deletedAt: null };
     return db.organisasi.findMany({
       where,
       orderBy: { nama: "asc" },
     });
-  }
+  },
 
   /**
    * Ambil daftar organisasi yang bisa dipilih sebagai induk
-   * Dipakai untuk searchable parent select
    */
-  static async getParentOrganisasi(): Promise<OrganisasiDTO[]> {
+  getParentOrganisasi: async (): Promise<OrganisasiDTO[]> => {
     return db.organisasi.findMany({
       where: {
         deletedAt: null,
       },
       orderBy: [{ indukOrganisasiId: "asc" }, { nama: "asc" }],
     });
-  }
+  },
 
   /**
    * Ambil organisasi dengan hierarki (tree structure)
    */
-  static async getTree(): Promise<OrganisasiWithTree[]> {
+  getTree: async (): Promise<OrganisasiWithTree[]> => {
     const organisasi = await db.organisasi.findMany({
       where: { deletedAt: null },
       include: {
@@ -108,11 +106,9 @@ export class OrganisasiService {
       orderBy: { nama: "asc" },
     });
 
-    // Build tree structure
     const map = new Map<string, OrganisasiWithTree>();
     const roots: OrganisasiWithTree[] = [];
 
-    // First pass: convert to DTO dengan subOrganisasi array
     organisasi.forEach((org) => {
       const dto: OrganisasiWithTree = {
         id: org.id,
@@ -134,7 +130,6 @@ export class OrganisasiService {
       map.set(org.id, dto);
     });
 
-    // Second pass: build hierarchy
     organisasi.forEach((org) => {
       const current = map.get(org.id)!;
       if (org.indukOrganisasiId) {
@@ -148,12 +143,12 @@ export class OrganisasiService {
     });
 
     return roots;
-  }
+  },
 
   /**
    * Ambil sub-organisasi dari parent tertentu
    */
-  static async getSubOrganisasi(parentId: string): Promise<OrganisasiDTO[]> {
+  getSubOrganisasi: async (parentId: string): Promise<OrganisasiDTO[]> => {
     return db.organisasi.findMany({
       where: {
         indukOrganisasiId: parentId,
@@ -161,38 +156,38 @@ export class OrganisasiService {
       },
       orderBy: { nama: "asc" },
     });
-  }
+  },
 
   /**
-   * Ambil sub-organisasi (alias) digunakan oleh actions
+   * Ambil sub-organisasi (alias)
    */
-  static async getChildOrganisasi(parentId: string): Promise<OrganisasiDTO[]> {
-    return this.getSubOrganisasi(parentId);
-  }
+  getChildOrganisasi: async (parentId: string): Promise<OrganisasiDTO[]> => {
+    return OrganisasiService.getSubOrganisasi(parentId);
+  },
 
   /**
    * Ambil path dari organisasi ke root (untuk breadcrumb)
    */
-  static async getHierarchyPath(id: string): Promise<OrganisasiDTO[]> {
+  getHierarchyPath: async (id: string): Promise<OrganisasiDTO[]> => {
     const path: OrganisasiDTO[] = [];
-    let current = await this.getById(id);
+    let current = await OrganisasiService.getById(id);
 
     while (current) {
       path.unshift(current);
       if (current.indukOrganisasiId) {
-        current = await this.getById(current.indukOrganisasiId);
+        current = await OrganisasiService.getById(current.indukOrganisasiId);
       } else {
         break;
       }
     }
 
     return path;
-  }
+  },
 
   /**
    * Ambil organisasi dengan pimpinan aktif
    */
-  static async getWithPimpinanAktif(id: string) {
+  getWithPimpinanAktif: async (id: string) => {
     const organisasi = await db.organisasi.findUnique({
       where: { id },
       include: {
@@ -215,16 +210,16 @@ export class OrganisasiService {
     });
 
     return organisasi;
-  }
+  },
 
   /**
    * Validasi organisasi exists
    */
-  static async exists(id: string): Promise<boolean> {
+  exists: async (id: string): Promise<boolean> => {
     const count = await db.organisasi.count({
       where: { id, deletedAt: null },
     });
     return count > 0;
-  }
-}
+  },
+};
 
